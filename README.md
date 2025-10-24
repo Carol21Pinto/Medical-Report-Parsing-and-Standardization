@@ -40,7 +40,7 @@ All extracted data is standardized into JSON format and stored in an Excel file 
 - **JavaScript (Vanilla)**
 
 ## 📁 Project Structure
-
+'''
 Medical-Extracter/
 ├── Backend/
 │ ├── model/
@@ -54,7 +54,7 @@ Medical-Extracter/
 │ └── index.html # Web interface
 ├── .gitignore
 └── README.md
-
+'''
 
 ## 🚀 Installation
 
@@ -191,11 +191,11 @@ Response: {"total_records": 150, "unique_patients": 12}
 
 ## 👨‍💻 Author
 
-**Your Name**
-- University College, Pune
-- Computer Science Department
-- Email: your.email@example.com
-- GitHub: [@yourusername](https://github.com/yourusername)
+**Carol Pinto**
+- St Aloysius institute of management and information technology, Mangalore
+- Software Technology Department
+- Email: carolpintopintopinto@gmail.com
+- GitHub: [@Carol21Pinto](https://github.com/Carol21Pinto)
 
 ## 📝 License
 
@@ -210,7 +210,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📞 Contact
 
-For questions or suggestions, please open an issue or contact [your.email@example.com](mailto:your.email@example.com)
+For questions or suggestions, please open an issue or contact [carolpintopintopinto@gmail.com](mailto:carolpintopintopinto@gmail.com)
 
 ---
 
