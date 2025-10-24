@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medical Report Extractor - AI Powered</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      padding: 30px;
+    }
+    h1 { 
+      color: #333; 
+      margin-bottom: 10px;
+      font-size: 2em;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 0.95em;
+    }
+    .upload-section {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      border: 2px dashed #667eea;
+    }
+    .button-group {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    input[type="file"] {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      flex: 1;
+      min-width: 250px;
+      margin-bottom: 15px;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+    button:hover { transform: translateY(-2px); }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .download-btn {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+    .stats-badge {
+      background: #e7f3ff;
+      color: #0066cc;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .excel-info {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .excel-info.show {
+      display: block;
+    }
+    .excel-info h3 {
+      color: #155724;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+    }
+    .excel-info p {
+      color: #155724;
+      margin: 5px 0;
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+    .section h2 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 1.3em;
+      display: flex;
+      align-items: center;
+    }
+    .section h2::before {
+      content: "📋";
+      margin-right: 10px;
+    }
+    table { 
+      border-collapse: collapse; 
+      width: 100%; 
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td { 
+      border: 1px solid #e0e0e0; 
+      padding: 12px; 
+      text-align: left; 
+    }
+    th { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 600;
+    }
+    tr:nth-child(even) { background: #f9f9f9; }
+    tr:hover { background: #f0f0f0; }
+    pre { 
+      background: white; 
+      padding: 15px; 
+      border-radius: 6px; 
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.6;
+      border: 1px solid #e0e0e0;
+    }
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.85em;
+      font-weight: 600;
+    }
+    .status-normal { background: #d4edda; color: #155724; }
+    .status-high { background: #f8d7da; color: #721c24; }
+    .status-low { background: #fff3cd; color: #856404; }
+    .loading {
+      display: none;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 6px;
+      border-left: 4px solid #f5c6cb;
+      margin-bottom: 20px;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      padding: 15px;
+      border-radius: 6px;
+      border-left: 4px solid #c3e6cb;
+      margin-bottom: 20px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .info-item {
+      background: white;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+    }
+    .info-label {
+      font-weight: 600;
+      color: #667eea;
+      font-size: 0.9em;
+      margin-bottom: 5px;
+    }
+    .info-value {
+      color: #333;
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🏥 Medical Report Extractor</h1>
+    <p class="subtitle">AI-Powered Clinical Data Extraction & Excel Export System</p>
+
+    <div class="upload-section">
+      <h2>Upload Medical Report</h2>
+      <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="fileInput" name="file" accept=".png,.jpg,.jpeg,.pdf,.txt,.docx" required />
+        <div class="button-group">
+          <button type="submit" id="submitBtn">🚀 Analyze Report</button>
+          <button type="button" class="download-btn" id="downloadBtn" onclick="downloadExcel()">
+            📥 Download Excel File
+          </button>
+          <span class="stats-badge" id="statsBadge">
+            <span>📊</span>
+            <span id="statsText">No reports processed yet</span>
+          </span>
+        </div>
+      </form>
+    </div>
+
+    <div class="excel-info" id="excelInfo"></div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Analyzing medical report...</p>
+    </div>
+
+    <div id="errorDiv"></div>
+    <div id="successDiv"></div>
+
+    <div id="results" style="display:none;">
+      <!-- Patient Information -->
+      <div class="section">
+        <h2>Patient Information</h2>
+        <div class="info-grid" id="patientInfo"></div>
+      </div>
+
+      <!-- Order Information -->
+      <div class="section">
+        <h2>Order & Report Details</h2>
+        <div class="info-grid" id="orderInfo"></div>
+      </div>
+
+      <!-- Lab Tests -->
+      <div class="section">
+        <h2>Laboratory Test Results</h2>
+        <table id="labTable">
+          <thead>
+            <tr>
+              <th>Test Name</th>
+              <th>Value</th>
+              <th>Unit</th>
+              <th>Reference Range</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- Diagnoses -->
+      <div class="section" id="diagnosesSection" style="display:none;">
+        <h2>Diagnoses & Medical Conditions</h2>
+        <div id="diagnosesList"></div>
+      </div>
+
+      <!-- Medications -->
+      <div class="section" id="medicationsSection" style="display:none;">
+        <h2>Medications & Chemicals</h2>
+        <div id="medicationsList"></div>
+      </div>
+
+      <!-- Clinical Notes -->
+      <div class="section" id="notesSection" style="display:none;">
+        <h2>Clinical Interpretation</h2>
+        <pre id="clinicalNotes"></pre>
+      </div>
+
+      <!-- Raw JSON -->
+      <div class="section">
+        <h2>📄 Standardized JSON Output</h2>
+        <pre id="jsonOutput"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("uploadForm");
+    const fileInput = document.getElementById("fileInput");
+    const submitBtn = document.getElementById("submitBtn");
+    const loading = document.getElementById("loading");
+    const results = document.getElementById("results");
+    const errorDiv = document.getElementById("errorDiv");
+    const successDiv = document.getElementById("successDiv");
+    const excelInfo = document.getElementById("excelInfo");
+    const statsText = document.getElementById("statsText");
+
+    // Load stats on page load
+    loadExcelStats();
+
+    form.addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      if (!fileInput.files[0]) {
+        showError("Please select a file.");
+        return;
+      }
+
+      // Clear previous results
+      errorDiv.innerHTML = "";
+      successDiv.innerHTML = "";
+      results.style.display = "none";
+      excelInfo.classList.remove("show");
+      loading.style.display = "block";
+      submitBtn.disabled = true;
+
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+
+      try {
+        const res = await fetch("http://127.0.0.1:5000/analyze", {
+          method: "POST",
+          body: formData
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || `Server returned ${res.status}`);
+        }
+
+        const data = await res.json();
+        
+        // Show Excel export success
+        if (data.excel_export && data.excel_export.success) {
+          showExcelSuccess(data.excel_export, data.excel_stats);
+        }
+        
+        displayResults(data);
+        loadExcelStats();
+
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        loading.style.display = "none";
+        submitBtn.disabled = false;
+      }
+    });
+
+    async function loadExcelStats() {
+      try {
+        const res = await fetch("http://127.0.0.1:5000/excel-stats");
+        const stats = await res.json();
+        
+        if (stats.exists && stats.total_records > 0) {
+          statsText.textContent = `${stats.total_records} tests from ${stats.unique_patients} patients`;
+        } else {
+          statsText.textContent = "No reports processed yet";
+        }
+      } catch (err) {
+        console.error("Failed to load stats:", err);
+      }
+    }
+
+    async function downloadExcel() {
+      try {
+        const res = await fetch("http://127.0.0.1:5000/download-excel");
+        
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || "Download failed");
+        }
+
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'lab_results.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        showSuccess("✓ Excel file downloaded successfully!");
+        
+      } catch (err) {
+        showError(err.message);
+      }
+    }
+
+    function showExcelSuccess(exportInfo, stats) {
+      excelInfo.innerHTML = `
+        <h3>✓ Data Exported to Excel</h3>
+        <p><strong>${exportInfo.rows_added}</strong> lab test records added to Excel file</p>
+        <p>Total records in file: <strong>${stats.total_records}</strong></p>
+        <p>Unique patients: <strong>${stats.unique_patients}</strong></p>
+      `;
+      excelInfo.classList.add("show");
+    }
+
+    function displayResults(data) {
+      results.style.display = "block";
+
+      // Patient Information
+      displayPatientInfo(data.patient_information);
+
+      // Order Information
+      displayOrderInfo(data.order_information);
+
+      // Lab Tests
+      displayLabTests(data.lab_tests);
+
+      // Diagnoses
+      if (data.diagnoses && data.diagnoses.length > 0) {
+        displayDiagnoses(data.diagnoses);
+      }
+
+      // Medications
+      if (data.medications && data.medications.length > 0) {
+        displayMedications(data.medications);
+      }
+
+      // Clinical Notes
+      if (data.clinical_notes) {
+        document.getElementById("notesSection").style.display = "block";
+        document.getElementById("clinicalNotes").textContent = data.clinical_notes;
+      }
+
+      // JSON Output
+      document.getElementById("jsonOutput").textContent = JSON.stringify(data, null, 2);
+    }
+
+    function displayPatientInfo(info) {
+      const container = document.getElementById("patientInfo");
+      container.innerHTML = "";
+
+      const fields = [
+        { label: "Patient Name", value: info.patient_name },
+        { label: "Age", value: info.age ? `${info.age} years` : null },
+        { label: "Sex", value: info.sex },
+        { label: "UHID", value: info.uhid },
+        { label: "Episode", value: info.episode },
+        { label: "Referring Doctor", value: info.ref_doctor },
+        { label: "Mobile Number", value: info.mobile_no }
+      ];
+
+      fields.forEach(field => {
+        if (field.value) {
+          container.innerHTML += `
+            <div class="info-item">
+              <div class="info-label">${field.label}</div>
+              <div class="info-value">${field.value}</div>
+            </div>
+          `;
+        }
+      });
+    }
+
+    function displayOrderInfo(info) {
+      const container = document.getElementById("orderInfo");
+      container.innerHTML = "";
+
+      const fields = [
+        { label: "Order Date", value: info.order_date },
+        { label: "Bill Number", value: info.bill_no },
+        { label: "Facility", value: info.facility },
+        { label: "Sample Number", value: info.sample_no },
+        { label: "Collection Date", value: info.collection_date },
+        { label: "Report Date", value: info.report_date },
+        { label: "Acknowledgment Date", value: info.ack_date }
+      ];
+
+      fields.forEach(field => {
+        if (field.value) {
+          container.innerHTML += `
+            <div class="info-item">
+              <div class="info-label">${field.label}</div>
+              <div class="info-value">${field.value}</div>
+            </div>
+          `;
+        }
+      });
+    }
+
+    function displayLabTests(tests) {
+      const tbody = document.querySelector("#labTable tbody");
+      tbody.innerHTML = "";
+
+      if (tests && tests.length > 0) {
+        tests.forEach(test => {
+          const statusClass = `status-${test.status.toLowerCase()}`;
+          tbody.innerHTML += `
+            <tr>
+              <td><strong>${test.test_name}</strong></td>
+              <td>${test.value}</td>
+              <td>${test.unit}</td>
+              <td>${test.reference_range || "-"}</td>
+              <td><span class="status-badge ${statusClass}">${test.status}</span></td>
+            </tr>
+          `;
+        });
+      } else {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No lab tests found</td></tr>';
+      }
+    }
+
+    function displayDiagnoses(diagnoses) {
+      const section = document.getElementById("diagnosesSection");
+      const container = document.getElementById("diagnosesList");
+      section.style.display = "block";
+      container.innerHTML = "";
+
+      diagnoses.forEach(diagnosis => {
+        container.innerHTML += `
+          <div class="info-item">
+            <div class="info-label">${diagnosis.type}</div>
+            <div class="info-value">${diagnosis.condition}</div>
+          </div>
+        `;
+      });
+    }
+
+    function displayMedications(medications) {
+      const section = document.getElementById("medicationsSection");
+      const container = document.getElementById("medicationsList");
+      section.style.display = "block";
+      container.innerHTML = "";
+
+      medications.forEach(med => {
+        container.innerHTML += `
+          <div class="info-item">
+            <div class="info-label">${med.type}</div>
+            <div class="info-value">${med.medication_name}</div>
+          </div>
+        `;
+      });
+    }
+
+    function showError(message) {
+      errorDiv.innerHTML = `<div class="error">❌ Error: ${message}</div>`;
+      errorDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showSuccess(message) {
+      successDiv.innerHTML = `<div class="success">${message}</div>`;
+      setTimeout(() => successDiv.innerHTML = "", 5000);
+    }
+  </script>
+</body>
+</html>
